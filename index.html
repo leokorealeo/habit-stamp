@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>습관 도장판</title>
+<title>습관 프로젝트 from 외과의사 이준서</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
   :root{
@@ -54,8 +54,10 @@
 
   /* ── 헤더 ── */
   .top{display:flex; align-items:center; justify-content:space-between; padding:6px 4px 14px;}
-  .brand{display:flex; align-items:baseline; gap:8px;}
-  .brand h1{font-size:20px; font-weight:800; margin:0; letter-spacing:-.02em;}
+  .brand{display:flex; align-items:center; gap:8px;}
+  .brand h1{font-size:18px; font-weight:800; margin:0; letter-spacing:-.02em; line-height:1.15;}
+  .brand .byline{font-size:11.5px; font-weight:600; color:var(--sub); letter-spacing:.01em;}
+  .brand-txt{display:flex; flex-direction:column;}
   .brand .seal{
     display:inline-block; width:22px; height:22px; border-radius:6px;
     background:var(--stamp); color:#fff; font-size:12px; font-weight:800;
@@ -234,7 +236,7 @@
 
 <div class="wrap">
   <div class="top">
-    <div class="brand"><span class="seal">✓</span><h1>습관 도장판</h1></div>
+    <div class="brand"><span class="seal">✓</span><div class="brand-txt"><h1>습관 프로젝트</h1><span class="byline">from 외과의사 이준서</span></div></div>
     <button class="btn-ghost" id="manageBtn">습관 관리</button>
   </div>
 
@@ -834,7 +836,7 @@
       ctx.fillStyle = "#B4AC99";
       ctx.font = "500 22px " + CANVAS_FONT;
       ctx.textAlign = "center";
-      ctx.fillText("습관 도장판 · " + sel, W/2, H-52);
+      ctx.fillText("습관 프로젝트 from 외과의사 이준서 · " + sel, W/2, H-52);
 
       openProof(cv, "습관인증_"+sel);
     });
@@ -947,7 +949,7 @@
     ctx.fillStyle = "#B4AC99";
     ctx.font = "500 22px " + CANVAS_FONT;
     ctx.textAlign = "center";
-    ctx.fillText("습관 도장판 · "+y+"년 "+(m+1)+"월", W/2, H-52);
+    ctx.fillText("습관 프로젝트 from 외과의사 이준서 · "+y+"년 "+(m+1)+"월", W/2, H-52);
 
     openProof(cv, "습관기록_"+y+"-"+pad(m+1));
   }
