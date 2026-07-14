@@ -309,7 +309,7 @@
       </div>
       <button class="backup-share" id="backupShareBtn" hidden>📨 카카오톡·이메일로 백업 보내기</button>
       <p class="backup-last" id="backupLast"></p>
-      <p class="backup-last">백업 기능 v4 · 공유 시 파일 자동 첨부</p>
+      <p class="backup-last">백업 기능 v5 · 공유 시 파일 자동 첨부</p>
     </div>
   </div>
 </div>
@@ -819,7 +819,9 @@
         toast("이 기기는 파일 공유 미지원 → 다운로드로 저장했습니다");
         return;
       }
-      navigator.share({ files:[file], title:"습관 프로젝트 백업" })
+      /* 제목(title)을 함께 보내면 카카오톡이 텍스트를 우선해 파일을
+         버리는 문제가 있어, 파일만 단독으로 공유한다. */
+      navigator.share({ files:[file] })
         .then(markBackedUp)
         .catch(function(err){
           if(err && err.name === "AbortError") return;   // 사용자가 공유 취소
