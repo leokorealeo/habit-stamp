@@ -301,7 +301,9 @@
         기록은 이 브라우저 안에만 저장돼서 <b>"인터넷 사용기록/쿠키 삭제"를 하면 함께 지워집니다.</b><br>
         가끔 백업 파일을 저장해 두세요. 파일은 휴대폰 저장공간(다운로드 폴더)에 남아
         사용기록을 지워도 사라지지 않고, 새 폰으로 옮길 때도 쓸 수 있습니다.<br>
-        불러오기는 저장한 파일(.json)과 공유로 보낸 파일(.txt) 모두 인식합니다.
+        불러오기는 저장한 파일(.json)과 공유로 보낸 파일(.txt) 모두 인식합니다.<br>
+        ※ 카카오톡은 문서 파일을 받지 않아 안내 문구만 전송됩니다.
+        카톡 보관은 <b>백업 파일 저장</b> 후 채팅방에서 직접 첨부하세요. (이메일·드라이브는 자동 첨부)
       </p>
       <div class="proof-actions">
         <button id="backupBtn" class="main">📤 백업 파일 저장</button>
@@ -309,7 +311,7 @@
       </div>
       <button class="backup-share" id="backupShareBtn" hidden>📨 카카오톡·이메일로 백업 보내기</button>
       <p class="backup-last" id="backupLast"></p>
-      <p class="backup-last">백업 기능 v5 · 공유 시 파일 자동 첨부</p>
+      <p class="backup-last">백업 기능 v6</p>
     </div>
   </div>
 </div>
@@ -819,9 +821,13 @@
         toast("이 기기는 파일 공유 미지원 → 다운로드로 저장했습니다");
         return;
       }
-      /* 제목(title)을 함께 보내면 카카오톡이 텍스트를 우선해 파일을
-         버리는 문제가 있어, 파일만 단독으로 공유한다. */
-      navigator.share({ files:[file] })
+      /* 카카오톡은 문서 파일 첨부를 받지 않으므로(자체 제한),
+         안내 문구를 함께 보낸다. 카톡에는 이 문구가 남아 수동 첨부를
+         유도하고, 이메일에는 파일 첨부 + 본문으로 들어간다. */
+      navigator.share({
+        files: [file],
+        text: "습관 프로젝트 백업 파일(.json)을 첨부해주세요"
+      })
         .then(markBackedUp)
         .catch(function(err){
           if(err && err.name === "AbortError") return;   // 사용자가 공유 취소
