@@ -300,7 +300,8 @@
       <p class="backup-hint">
         기록은 이 브라우저 안에만 저장돼서 <b>"인터넷 사용기록/쿠키 삭제"를 하면 함께 지워집니다.</b><br>
         가끔 백업 파일을 저장해 두세요. 파일은 휴대폰 저장공간(다운로드 폴더)에 남아
-        사용기록을 지워도 사라지지 않고, 새 폰으로 옮길 때도 쓸 수 있습니다.
+        사용기록을 지워도 사라지지 않고, 새 폰으로 옮길 때도 쓸 수 있습니다.<br>
+        불러오기는 저장한 파일(.json)과 공유로 보낸 파일(.txt) 모두 인식합니다.
       </p>
       <div class="proof-actions">
         <button id="backupBtn" class="main">📤 백업 파일 저장</button>
@@ -338,7 +339,7 @@
 </div>
 
 <input type="file" id="fileInput" accept="image/*" hidden>
-<input type="file" id="backupInput" accept=".json,application/json" hidden>
+<input type="file" id="backupInput" accept=".json,.txt,application/json,text/plain" hidden>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -808,7 +809,10 @@
 
   $("backupShareBtn").addEventListener("click", function(){
     const shareNow = function(f){
-      const file = new File([f.blob], f.name, { type: "application/json" });
+      /* 브라우저가 JSON 파일 공유를 막는 경우가 많아(허용 목록에 없음)
+         공유할 때는 같은 내용을 텍스트(.txt) 파일로 보낸다. 복원은 둘 다 인식. */
+      const file = new File([f.blob], f.name.replace(/\.json$/, ".txt"),
+                            { type: "text/plain" });
       if(!(navigator.canShare && navigator.canShare({ files:[file] }))){
         downloadBackup(f);
         toast("이 기기는 파일 공유 미지원 → 다운로드로 저장했습니다");
