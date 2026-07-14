@@ -309,10 +309,9 @@
         <button id="backupBtn" class="main">📤 백업 파일 저장</button>
         <button id="restoreBtn">📥 백업 불러오기</button>
       </div>
-      <button class="backup-share" id="backupShareBtn" hidden>📨 이메일·드라이브로 백업 보내기</button>
-      <button class="backup-share" id="kakaoGuideBtn" hidden>💬 카카오톡에 첨부 안내 보내기</button>
+      <button class="backup-share" id="backupShareBtn" hidden>📨 카카오톡·이메일로 백업 보내기</button>
       <p class="backup-last" id="backupLast"></p>
-      <p class="backup-last">백업 기능 v7</p>
+      <p class="backup-last">백업 기능 v8</p>
     </div>
   </div>
 </div>
@@ -682,7 +681,6 @@
     buildEmojiRow();
     renderBackupInfo();
     if(navigator.canShare) $("backupShareBtn").hidden = false;
-    if(navigator.share) $("kakaoGuideBtn").hidden = false;
     const list = $("hList");
     list.innerHTML = "";
     const hs = activeHabits();
@@ -838,14 +836,6 @@
       backupFileCache = f;
       shareNow(f);
     }).catch(function(){ toast("백업 파일을 만들지 못했습니다"); });
-  });
-
-  /* 카카오톡은 문서 파일을 받지 않으므로, 카톡용으로는 수동 첨부를
-     유도하는 안내 문구만 공유한다 (문구가 채팅방에 남는다). */
-  $("kakaoGuideBtn").addEventListener("click", function(){
-    if(!navigator.share){ toast("이 기기에서는 공유를 지원하지 않습니다"); return; }
-    navigator.share({ text: "습관 프로젝트 백업 파일(.json)을 첨부해주세요" })
-      .catch(function(){ /* 취소 등은 조용히 무시 */ });
   });
 
   $("restoreBtn").addEventListener("click", function(){
