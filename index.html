@@ -214,7 +214,11 @@
   .backup-hint{font-size:12.5px; color:var(--sub); margin:0 0 12px; line-height:1.55;}
   .backup-hint b{color:var(--ink);}
   .backup-last{font-size:12px; color:var(--sub); margin:10px 0 0; text-align:center;}
-  .backup-share{display:block; margin:10px auto 0; font-size:12.5px; font-weight:600; color:var(--sub); text-decoration:underline; text-underline-offset:3px;}
+  .backup-share{
+    display:flex; width:100%; align-items:center; justify-content:center; gap:8px;
+    margin-top:8px; padding:13px; border-radius:12px; font-size:14px; font-weight:800;
+    border:1px solid var(--line); background:var(--bg); color:var(--ink);
+  }
 
   /* 인증 이미지 */
   .proof-body{text-align:center;}
@@ -302,7 +306,7 @@
         <button id="backupBtn" class="main">📤 백업 파일 저장</button>
         <button id="restoreBtn">📥 백업 불러오기</button>
       </div>
-      <button class="backup-share" id="backupShareBtn" hidden>공유로 백업 보내기 (카카오톡·드라이브 등)</button>
+      <button class="backup-share" id="backupShareBtn" hidden>📨 카카오톡·드라이브로 백업 보내기</button>
       <p class="backup-last" id="backupLast"></p>
     </div>
   </div>
@@ -353,6 +357,7 @@
   function save(){
     try{ localStorage.setItem(LS_KEY, JSON.stringify(store)); }
     catch(e){ toast("저장 공간이 부족합니다"); }
+    backupFileCache = null;   // 기록이 바뀌면 미리 만든 백업 파일은 폐기
   }
 
   /* 사진은 IndexedDB에 (용량 큼) */
@@ -665,6 +670,7 @@
   }
   function openMgr(){
     renderMgr();
+    prebuildBackup();   // 공유 버튼을 누르는 즉시 공유창이 뜨도록 미리 준비
     $("mgrOverlay").classList.add("open");
   }
   function renderMgr(){
@@ -762,9 +768,26 @@
       return { blob: blob, name: name };
     });
   }
+
+  /* 공유는 '터치 직후'에만 허용하는 브라우저가 있어서, 시트를 열 때
+     백업 파일을 미리 만들어 두고 버튼을 누르면 즉시 공유창을 띄운다. */
+  let backupFileCache = null;
+  function prebuildBackup(){
+    backupFileCache = null;
+    buildBackupFile().then(function(f){ backupFileCache = f; })
+      .catch(function(){});
+  }
+  function downloadBackup(f){
+    const url = URL.createObjectURL(f.blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = f.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    markBackedUp();
+  }
   function markBackedUp(){
     store.lastBackupAt = todayKey;
-    save();
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(store)); }catch(e){}
     renderBackupInfo();
   }
   function renderBackupInfo(){
@@ -777,25 +800,33 @@
 
   $("backupBtn").addEventListener("click", function(){
     buildBackupFile().then(function(f){
-      const url = URL.createObjectURL(f.blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = f.name;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
-      markBackedUp();
+      backupFileCache = f;
+      downloadBackup(f);
       toast("백업 파일이 다운로드 폴더에 저장되었습니다 ✓");
     }).catch(function(){ toast("백업 파일을 만들지 못했습니다"); });
   });
 
   $("backupShareBtn").addEventListener("click", function(){
-    buildBackupFile().then(function(f){
+    const shareNow = function(f){
       const file = new File([f.blob], f.name, { type: "application/json" });
-      if(navigator.canShare && navigator.canShare({ files:[file] })){
-        return navigator.share({ files:[file], title:"습관 프로젝트 백업" })
-          .then(markBackedUp);
+      if(!(navigator.canShare && navigator.canShare({ files:[file] }))){
+        downloadBackup(f);
+        toast("이 기기는 파일 공유 미지원 → 다운로드로 저장했습니다");
+        return;
       }
-      toast("이 기기에서는 공유를 지원하지 않습니다");
-    }).catch(function(){ /* 공유 취소 등은 조용히 무시 */ });
+      navigator.share({ files:[file], title:"습관 프로젝트 백업" })
+        .then(markBackedUp)
+        .catch(function(err){
+          if(err && err.name === "AbortError") return;   // 사용자가 공유 취소
+          downloadBackup(f);                              // 공유창 차단 → 파일로 저장
+          toast("공유창을 열지 못해 다운로드로 저장했습니다");
+        });
+    };
+    if(backupFileCache){ shareNow(backupFileCache); return; }
+    buildBackupFile().then(function(f){
+      backupFileCache = f;
+      shareNow(f);
+    }).catch(function(){ toast("백업 파일을 만들지 못했습니다"); });
   });
 
   $("restoreBtn").addEventListener("click", function(){
