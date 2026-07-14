@@ -302,16 +302,17 @@
         가끔 백업 파일을 저장해 두세요. 파일은 휴대폰 저장공간(다운로드 폴더)에 남아
         사용기록을 지워도 사라지지 않고, 새 폰으로 옮길 때도 쓸 수 있습니다.<br>
         불러오기는 저장한 파일(.json)과 공유로 보낸 파일(.txt) 모두 인식합니다.<br>
-        ※ 카카오톡은 문서 파일을 받지 않아 안내 문구만 전송됩니다.
-        카톡 전달은 <b>백업 파일 저장</b> 후 채팅방에서 직접 첨부하세요. (이메일·드라이브는 자동 첨부)
+        ※ 이메일·드라이브 공유는 파일이 자동 첨부됩니다.
+        카카오톡은 문서 파일을 받지 않으므로, <b>백업 파일 저장</b> 후 채팅방에서 직접 첨부하세요.
       </p>
       <div class="proof-actions">
         <button id="backupBtn" class="main">📤 백업 파일 저장</button>
         <button id="restoreBtn">📥 백업 불러오기</button>
       </div>
-      <button class="backup-share" id="backupShareBtn" hidden>📨 카카오톡·이메일로 백업 보내기</button>
+      <button class="backup-share" id="backupShareBtn" hidden>📨 이메일·드라이브로 백업 보내기</button>
+      <button class="backup-share" id="kakaoGuideBtn" hidden>💬 카카오톡에 첨부 안내 보내기</button>
       <p class="backup-last" id="backupLast"></p>
-      <p class="backup-last">백업 기능 v6</p>
+      <p class="backup-last">백업 기능 v7</p>
     </div>
   </div>
 </div>
@@ -681,6 +682,7 @@
     buildEmojiRow();
     renderBackupInfo();
     if(navigator.canShare) $("backupShareBtn").hidden = false;
+    if(navigator.share) $("kakaoGuideBtn").hidden = false;
     const list = $("hList");
     list.innerHTML = "";
     const hs = activeHabits();
@@ -821,13 +823,9 @@
         toast("이 기기는 파일 공유 미지원 → 다운로드로 저장했습니다");
         return;
       }
-      /* 카카오톡은 문서 파일 첨부를 받지 않으므로(자체 제한),
-         안내 문구를 함께 보낸다. 카톡에는 이 문구가 남아 수동 첨부를
-         유도하고, 이메일에는 파일 첨부 + 본문으로 들어간다. */
-      navigator.share({
-        files: [file],
-        text: "습관 프로젝트 백업 파일(.json)을 첨부해주세요"
-      })
+      /* 파일만 단독 공유: 이메일·드라이브에 문구 없이 깔끔하게 첨부된다.
+         (문구를 함께 보내면 일부 앱이 파일 대신 텍스트를 우선함) */
+      navigator.share({ files: [file] })
         .then(markBackedUp)
         .catch(function(err){
           if(err && err.name === "AbortError") return;   // 사용자가 공유 취소
@@ -840,6 +838,14 @@
       backupFileCache = f;
       shareNow(f);
     }).catch(function(){ toast("백업 파일을 만들지 못했습니다"); });
+  });
+
+  /* 카카오톡은 문서 파일을 받지 않으므로, 카톡용으로는 수동 첨부를
+     유도하는 안내 문구만 공유한다 (문구가 채팅방에 남는다). */
+  $("kakaoGuideBtn").addEventListener("click", function(){
+    if(!navigator.share){ toast("이 기기에서는 공유를 지원하지 않습니다"); return; }
+    navigator.share({ text: "습관 프로젝트 백업 파일(.json)을 첨부해주세요" })
+      .catch(function(){ /* 취소 등은 조용히 무시 */ });
   });
 
   $("restoreBtn").addEventListener("click", function(){
